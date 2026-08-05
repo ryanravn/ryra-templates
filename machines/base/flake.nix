@@ -21,6 +21,7 @@
           disko.nixosModules.disko
           ./modules/hardware.nix
           ./modules/access.nix
+          ./modules/keys.nix
           ./modules/base.nix
         ];
       };
