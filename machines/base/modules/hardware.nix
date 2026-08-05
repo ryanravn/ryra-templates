@@ -21,6 +21,21 @@
   boot.initrd.availableKernelModules = [ "virtio_pci" "virtio_scsi" "ahci" "sd_mod" ];
   services.qemuGuest.enable = true;
 
+  # The network, which a hand-written hardware aspect has to say out loud.
+  #
+  # NixOS enables DHCP through the `hardware-configuration.nix` that
+  # `nixos-generate-config` writes, and a machine installed from a template
+  # never runs that. Left out, the install SUCCEEDS: it partitions, copies the
+  # closure, reboots, and comes up with no route to anything. The provider says
+  # the server is running and ssh times out, which is the most expensive shape
+  # of failure available here, because nothing is wrong that you can see.
+  #
+  # That happened. It is why this comment is longer than the setting.
+  networking.useDHCP = lib.mkDefault true;
+  # Hetzner routes a single address per machine and hands it out over DHCP on
+  # the first interface, so predictable names are not needed and `useDHCP`
+  # covers it. A machine with several interfaces would name them.
+
   disko.devices.disk.main = {
     device = lib.mkDefault "/dev/sda";
     type = "disk";
