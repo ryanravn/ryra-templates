@@ -1,0 +1,35 @@
+# A company that has just started, with the shape most of them need on day one.
+#
+# Copied rather than followed: `ryra org init --template ryra/default` writes
+# this into a new checkout and the organization owns it from that moment. A
+# template that kept reaching back would be a company whose structure somebody
+# else could change.
+#
+# The slug and the people are yours: `ryra org people add` writes the first one.
+
+[org]
+name = "Your organization"
+
+# Everybody, so there is somewhere to put a secret the whole company needs.
+[[vaults]]
+name = "Team"
+
+# The infrastructure people's, kept apart from the start: a vault split later,
+# after everything is in one, means moving secrets and re-rendering every
+# machine that held them.
+[[vaults]]
+name = "Infra"
+
+# The group that carries authority. Being an admin IS holding this keyring, so
+# it is not a role somebody is given, it is a group they are in.
+[[groups]]
+name = "admins"
+holds = ["Infra"]
+
+[[groups]]
+name = "everyone"
+holds = ["Team"]
+
+# No machines. Buying one is a decision with a price, and a template that
+# arrived having made it for you would be a template that spends your money.
+# `ryra org machines buy` adds one, and `aspects/base.nix` is what it runs.
