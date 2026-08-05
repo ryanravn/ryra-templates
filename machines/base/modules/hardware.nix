@@ -1,40 +1,49 @@
 # The disk and the bootloader, for a Hetzner Cloud VM.
 #
-# GRUB in UEFI mode with `efiInstallAsRemovable`, because Hetzner's firmware does
-# not persist a boot entry: installing as removable puts the loader where the
-# firmware looks by default, and a machine that installs cleanly and then does
-# not come back is the worst outcome available at this layer.
+# # Both boot paths, because guessing wrong is invisible
 #
-# Taken from a configuration that is running rather than invented: see
-# `hetzner-nixos-uefi`, which has booted this shape in fsn1 for months.
+# This machine may be BIOS or UEFI and nothing in the configuration can ask.
+# Hetzner Cloud x86 instances have historically booted SeaBIOS; arm64 and newer
+# types are UEFI. An earlier version of this file installed a UEFI-only GRUB,
+# copied from `hetzner-nixos-uefi` whose name says what it assumed.
+#
+# The failure that produces is the worst available here: `nixos-anywhere`
+# reports `### Done! ###`, the disk is written correctly, the provider says the
+# server is running, and the machine never boots. There is nothing to see and no
+# error anywhere. Two machines went that way before this comment existed.
+#
+# So the disk carries a BIOS boot partition AND an ESP, and GRUB is installed to
+# both. It costs 1 MB and a few seconds, and it removes a question that can only
+# be answered by buying a machine and watching it not come back.
 { lib, ... }:
 {
   boot.loader.grub = {
     enable = true;
     efiSupport = true;
+    # The firmware does not persist a boot entry, so the loader goes where a
+    # machine with no entry looks by default.
     efiInstallAsRemovable = true;
-    device = "nodev";
+    # And the MBR, for the firmware that never looks at an ESP at all.
+    devices = [ "/dev/sda" ];
   };
 
-  # `qemu-guest` for the virtio drivers the disk and network are behind. Without
-  # it the installer builds a system that cannot see its own root.
-  boot.initrd.availableKernelModules = [ "virtio_pci" "virtio_scsi" "ahci" "sd_mod" ];
+  # virtio, or the installed system cannot see its own disk or network.
+  boot.initrd.availableKernelModules = [
+    "virtio_pci"
+    "virtio_scsi"
+    "virtio_net"
+    "ahci"
+    "sd_mod"
+  ];
   services.qemuGuest.enable = true;
 
   # The network, which a hand-written hardware aspect has to say out loud.
   #
   # NixOS enables DHCP through the `hardware-configuration.nix` that
   # `nixos-generate-config` writes, and a machine installed from a template
-  # never runs that. Left out, the install SUCCEEDS: it partitions, copies the
-  # closure, reboots, and comes up with no route to anything. The provider says
-  # the server is running and ssh times out, which is the most expensive shape
-  # of failure available here, because nothing is wrong that you can see.
-  #
-  # That happened. It is why this comment is longer than the setting.
+  # never runs that. Left out, the install succeeds and the machine comes up
+  # with no route to anything.
   networking.useDHCP = lib.mkDefault true;
-  # Hetzner routes a single address per machine and hands it out over DHCP on
-  # the first interface, so predictable names are not needed and `useDHCP`
-  # covers it. A machine with several interfaces would name them.
 
   disko.devices.disk.main = {
     device = lib.mkDefault "/dev/sda";
@@ -42,6 +51,14 @@
     content = {
       type = "gpt";
       partitions = {
+        # 1 MB, no filesystem, type ef02. GRUB puts its core image here when the
+        # firmware is BIOS and the table is GPT: without it, a BIOS machine has
+        # nowhere to boot from on a GPT disk and fails silently at install time.
+        boot = {
+          size = "1M";
+          type = "EF02";
+          priority = 1;
+        };
         ESP = {
           size = "512M";
           type = "EF00";
