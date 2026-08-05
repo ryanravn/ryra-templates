@@ -30,6 +30,29 @@ holds = ["Infra"]
 name = "everyone"
 holds = ["Team"]
 
-# No machines. Buying one is a decision with a price, and a template that
-# arrived having made it for you would be a template that spends your money.
-# `ryra org machines buy` adds one, and `aspects/base.nix` is what it runs.
+# One machine, declared and not bought.
+#
+# Declaring costs nothing: `ryra org plan` prices it and `ryra org apply` asks
+# for a yes and a password before anything is created. So this is a suggestion
+# you can read and edit, not a decision made on your behalf, and an earlier
+# version of this file left it out on the mistaken grounds that it would spend
+# money.
+#
+# It is also the only way the template shows what a machine declaration looks
+# like: which groups get in, what it runs, where its record is sealed, and what
+# it starts life as. Without one, `machines/box/` sat here referenced by nothing.
+#
+# Change the region and the type before applying. `ryra org machines catalog`
+# lists what is actually available today, which moves: a type sold out in one
+# place is available in another.
+[[machines]]
+name = "box"
+from = "provider"
+provider = "hetzner"
+region = "hel1"
+type = "cx23"
+template = "ryra/base"
+# Who can log in, and what it runs. Two axes because they only usually coincide.
+access = ["admins"]
+aspects = ["base"]
+vault = "Infra"

@@ -10,13 +10,15 @@ machine has come up on it. Read it as a first draft with a known provenance.
 organizations/default/    the shape a company needs on day one
   organization.toml       vaults, groups
   aspects/base.nix        what every machine here runs
-  machines/box/flake.nix  one machine, referencing machines/base
+  machines/box/flake.nix  the machine it declares, referencing machines/base
 machines/base/            one box: disk, bootloader, ssh, firewall
 ```
 
 ## Two kinds, because they answer different questions
 
-An **organization** template gets somebody from nothing to a working company.
+An **organization** template gets somebody from nothing to a working company,
+which means it declares a machine: an organization with none is not working,
+and declaring costs nothing because `apply` prices it and asks first.
 A **machine** template gets one box booting, and is still needed six months
 later when somebody adds a machine that the organization template never saw.
 
