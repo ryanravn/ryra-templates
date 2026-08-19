@@ -31,6 +31,8 @@
           ./modules/keys.nix
           ./modules/secrets.nix
           ./modules/logins.nix
+          ./modules/memory.nix
+          ./modules/herdr.nix
           ./modules/base.nix
         ];
       };
