@@ -1,5 +1,5 @@
 {
-  description = "ryra/default: what a machine ryra creates starts life as";
+  description = "ryra/base-arm: ryra/base, for the arm64 boxes a provider sells cheaper";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -30,13 +30,13 @@
       # no evaluation of the system below, so a picker can consult it without instantiating
       # anything. A template that omits it is treated as x86_64-linux, which is what every one
       # written before this was.
-      meta.systems = [ "x86_64-linux" ];
+      meta.systems = [ "aarch64-linux" ];
 
       # One host, named for the machine ryra creates. `ryra org machines buy`
       # renames this to the machine's own name when it writes the checkout, so a
       # template is a starting point and never a shared identity.
       nixosConfigurations.machine = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
+        system = "aarch64-linux";
         modules = [
           disko.nixosModules.disko
           sops-nix.nixosModules.sops

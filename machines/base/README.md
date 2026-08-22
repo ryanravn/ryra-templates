@@ -7,6 +7,14 @@ that is running (`hetzner-nixos-uefi`, in fsn1) rather than invented, and it
 evaluates, but nothing has installed it. Read it as a first draft with a known
 provenance, not as something proven.
 
+## The arm64 one
+
+`machines/base-arm` is this template for arm64, which is where a provider's
+cheaper boxes are. It differs in two files, `flake.nix` and
+`modules/hardware.nix`, and every other file in it is a copy of this one: a fix
+here has to be made there too. Its README says why that was chosen over one
+template with a conditional.
+
 ## What is here
 
 | file | why |
