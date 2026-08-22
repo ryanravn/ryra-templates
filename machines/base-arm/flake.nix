@@ -37,18 +37,28 @@
       # template is a starting point and never a shared identity.
       nixosConfigurations.machine = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
+        # Every .nix under `modules/`, rather than a list naming them.
+        #
+        # Ryra GENERATES several of these: `keys.nix` when it installs, `secrets.nix` and
+        # `logins.nix` on every deploy, and more as it learns to. A hardcoded list means the
+        # product cannot start writing a file without this template being edited to import it,
+        # and the two repositories drifting is not hypothetical: `modules/ryra/settings.nix` is
+        # the file `ryra design` creates for per-service settings and never overwrites, it has
+        # existed the whole time, and nothing here imported it. Somebody's settings were being
+        # read by nobody.
+        #
+        # Order does not matter: NixOS merges modules rather than applying them in sequence, so a
+        # directory listing is as correct as a hand-written list and cannot fall behind one.
+        #
+        # The cost, stated: a stray .nix under `modules/` is now part of the system. That is the
+        # trade this pattern makes everywhere it is used, and it is the reason `secrets/` and the
+        # CA's public half live outside `modules/` rather than in it.
         modules = [
           disko.nixosModules.disko
           sops-nix.nixosModules.sops
-          ./modules/hardware.nix
-          ./modules/access.nix
-          ./modules/keys.nix
-          ./modules/secrets.nix
-          ./modules/logins.nix
-          ./modules/memory.nix
-          ./modules/herdr.nix
-          ./modules/base.nix
-        ];
+        ]
+        ++ (builtins.filter (path: nixpkgs.lib.hasSuffix ".nix" (toString path))
+          (nixpkgs.lib.filesystem.listFilesRecursive ./modules));
       };
     };
 }

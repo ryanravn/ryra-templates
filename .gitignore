@@ -1,0 +1,4 @@
+# Created by any `nix eval` or `nix build` against a template, and not a decision
+# anybody made. What a template pins decides what every machine built from it gets
+# for a year, so a lock belongs here on purpose or not at all.
+flake.lock
