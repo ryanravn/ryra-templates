@@ -23,7 +23,18 @@
   # An editor, because a box you can only reach over ssh and cannot edit a file on is a box you
   # have to redeploy to fix a typo in. `vim` rather than a choice: it is what is on every other
   # machine these people already administer, and NixOS ships `nano` in the installer anyway.
-  environment.systemPackages = with pkgs; [ git rsync vim ];
+  #
+  # The rest are what a person or an agent reaches for in the first minute on a box and finds
+  # missing: `ripgrep` provides `rg`, and `gh` needs its own login on the machine rather than
+  # inheriting one.
+  environment.systemPackages = with pkgs; [
+    fzf
+    gh
+    git
+    ripgrep
+    rsync
+    vim
+  ];
 
   # Package updates only, never a configuration change, and never on the box's
   # own initiative. `docs/DESIGN-machines.md`: a self-triggered rebuild has
