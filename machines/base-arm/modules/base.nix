@@ -3,7 +3,7 @@
 # A template is a starting point: once the machine exists its configuration is
 # its own directory in the organization's checkout, and anything opinionated
 # here is something every machine has to undo rather than something it chose.
-{ self, pkgs, hostName, ... }:
+{ self, lib, pkgs, hostName, ... }:
 {
   # Read by `ryra org` and by anything asking what a box is running. This is the
   # commit a generation was built from, which is what makes "roll back to that
@@ -20,6 +20,23 @@
   # Its own name, from the one file the flake attribute is also read from, so
   # `nixos-rebuild switch` with no arguments finds this configuration.
   networking.hostName = hostName;
+
+  # Every unfree package this machine is allowed, named one by one.
+  #
+  # In `base.nix` because `nixpkgs.config.allowUnfreePredicate` is ONE function and two modules
+  # defining it is a conflict, not a merge. So it cannot live beside each package that needs it,
+  # and the list here is the price of that.
+  #
+  # By name rather than a blanket `allowUnfree`, so a third one stays a decision somebody makes
+  # rather than something that slips in. Without a name on this list the machine does not build,
+  # and the failure is at BUILD rather than at evaluation: `nix flake check` and reading
+  # `systemPackages` both pass happily, which is how the first one reached a commit.
+  nixpkgs.config.allowUnfreePredicate =
+    pkg:
+    builtins.elem (lib.getName pkg) [
+      "claude-code"
+      "ryra"
+    ];
 
   time.timeZone = "UTC";
   i18n.defaultLocale = "en_US.UTF-8";

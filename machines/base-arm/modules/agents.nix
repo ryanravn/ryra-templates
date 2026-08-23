@@ -10,14 +10,8 @@
 # an adapter from npm on first use means a network round trip, tens of seconds before a pane
 # opens, and whatever version npm published that morning. These arrive in the closure, work with
 # no network, and start immediately.
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 {
-  # `claude-code` is the one unfree package on a ryra machine, and the permission is here rather
-  # than a blanket `allowUnfree` so that adding a second one stays a decision somebody makes.
-  # Without it every build of this machine fails, and the failure is at BUILD rather than at
-  # evaluation: `nix flake check` and reading `systemPackages` both pass happily.
-  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "claude-code" ];
-
   environment.systemPackages = with pkgs; [
     claude-code
     claude-code-acp

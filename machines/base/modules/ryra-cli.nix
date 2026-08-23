@@ -21,7 +21,7 @@
 #
 # This assumes the pool keeps what it has published. If a version is ever removed from
 # pkg.ryra.dev, every machine pinned to it stops building.
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 let
   version = "0.1.3";
 
@@ -60,6 +60,23 @@ let
       mkdir -p $out
       cp -r usr/* $out/
     '';
+
+    # Shaped the way nixpkgs shapes a closed-source binary, because that is what this would be
+    # submitted AS. Slack, zoom and 1password are all in nixpkgs on exactly these terms: a
+    # published artefact, `binaryNativeCode`, and an unfree licence. Building from source is not
+    # an option nixpkgs has here and repackaging is not a lesser path, it is the path.
+    #
+    # `sourceProvenance` is the part that is easy to leave out and is not optional: it is how
+    # somebody auditing a closure learns that this came down as a binary rather than being
+    # compiled, and 1227 packages in nixpkgs declare it.
+    meta = {
+      description = "The ryra command: one agent session, in your terminal and in the app";
+      homepage = "https://ryra.dev";
+      sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
+      license = lib.licenses.unfree;
+      platforms = builtins.attrNames published;
+      mainProgram = "ryra";
+    };
   };
 in
 {
