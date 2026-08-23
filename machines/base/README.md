@@ -78,15 +78,3 @@ Once a machine exists, its configuration is its own directory in the
 organization's checkout. Changing this repo does not reach back: a machine that
 silently followed a remote somebody else controls is a machine whose
 configuration you do not own.
-
-## What is missing
-
-- **`system.configurationRevision` is a placeholder.** It should be the commit,
-  which is what makes a generation know what it was built from.
-
-Two entries left this list rather than being fixed here, because they were
-answered elsewhere and the note outlived them. `nixos-anywhere` installs this,
-decided in `crates/core/src/design/install.rs` and argued there against the
-snapshot it was weighed against. And sops arrived: `modules/secrets.nix` ships
-empty and `ryra org machines deploy` fills it, keyed to the host key the old
-note was worried about.

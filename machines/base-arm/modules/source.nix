@@ -9,14 +9,22 @@
 # here reproducible and possible with no network: every input is already in this machine's store,
 # because that is what built the system running now.
 #
-#   cp -r /etc/nixos/source/. /etc/nixos/
-#   $EDITOR /etc/nixos/modules/whatever.nix
-#   nixos-rebuild switch --flake /etc/nixos#machine
+#   cp -rL /etc/nixos/source /root/nixos && chmod -R u+w /root/nixos
+#   $EDITOR /root/nixos/modules/whatever.nix
+#   nixos-rebuild switch --flake /root/nixos#machine
+#
+# NOT into `/etc/nixos` itself, which is the obvious destination and is wrong. The copy would land
+# beside this symlink, `self` would then be a tree CONTAINING `source`, and the entry below would
+# point the new `source` at a tree containing itself. The next copy after that fails outright with
+# `cp: cannot copy cyclic symbolic link`, and each rebuild nests one level deeper.
+#
+# `-L` because `source` is a symlink into the store: without it `cp -r` copies the link and not the
+# tree. `chmod` because store files arrive read-only, which stops an editor rather than root.
 #
 # READ ONLY, and that is the point rather than a limitation. It is a store path, so nothing here
-# can be edited in place and nobody can mistake it for the thing that decides. `/etc/nixos` itself
-# stays an ordinary writable directory, which is where a copy goes when somebody is fixing
-# something at two in the morning.
+# can be edited in place and nobody can mistake it for the thing that decides. It is also IN THE
+# SYSTEM CLOSURE rather than beside it, so rolling a generation back rolls its source back with
+# it, and a box two generations old can still say what built it.
 #
 # What happens on the next `ryra org machines switch`: the machine is built from the TREE and
 # whatever was done here is gone. That is not a flaw to design around, it is what declarative
