@@ -39,7 +39,7 @@
         system = "aarch64-linux";
         # Every .nix under `modules/`, rather than a list naming them.
         #
-        # Ryra GENERATES several of these: `keys.nix` when it installs, `secrets.nix` and
+        # Ryra GENERATES several of these: `logins.nix` and `ryra_ca.pub` when it installs, `secrets.nix` and
         # `logins.nix` on every deploy, and more as it learns to. A hardcoded list means the
         # product cannot start writing a file without this template being edited to import it,
         # and the two repositories drifting is not hypothetical: `modules/ryra/settings.nix` is
