@@ -31,7 +31,7 @@
   };
 
   outputs =
-    { nixpkgs, herdr-pkgs, disko, sops-nix, ... }:
+    { self, nixpkgs, herdr-pkgs, disko, sops-nix, ... }:
     {
       # What this template can be built for, as nix spells it.
       #
@@ -72,6 +72,7 @@
         # The pinned herdr reaches `modules/herdr.nix` as `herdrPkgs`, so that module names the
         # version it needs rather than taking whatever nixpkgs has moved to.
         specialArgs = {
+          inherit self;
           herdrPkgs = herdr-pkgs.legacyPackages."aarch64-linux";
         };
         modules = [

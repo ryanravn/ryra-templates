@@ -3,14 +3,19 @@
 # A template is a starting point: once the machine exists its configuration is
 # its own directory in the organization's checkout, and anything opinionated
 # here is something every machine has to undo rather than something it chose.
-{ pkgs, ... }:
+{ self, pkgs, ... }:
 {
   # Read by `ryra org` and by anything asking what a box is running. This is the
   # commit a generation was built from, which is what makes "roll back to that
   # point with that configuration" true rather than approximately true: without
   # it a machine knows what it IS and not what it was built FROM.
   # `nixos-version --configuration-revision` reads it back.
-  system.configurationRevision = "template";
+  # `self.rev` when the tree is a clean git checkout, `dirtyRev` when it is a checkout with
+  # uncommitted changes, and "dirty" when it is not a git tree at all. All three are honest and
+  # the third is the one a machine directory hits before anybody commits it. This used to be the
+  # literal string "template", which is not a commit and told nobody anything: the comment above
+  # described what it was for while the value did not do it.
+  system.configurationRevision = self.rev or self.dirtyRev or "dirty";
 
   time.timeZone = "UTC";
   i18n.defaultLocale = "en_US.UTF-8";

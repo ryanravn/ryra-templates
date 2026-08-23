@@ -27,7 +27,7 @@
 # machine and one in the tree, and the two drift. That is the failure ryra names in Terraform,
 # and every tool that manages more than one NixOS box, colmena and deploy-rs and morph among
 # them, pushes from one repository for the same reason.
-{ ... }:
+{ self, ... }:
 {
-  environment.etc."nixos/source".source = ./..;
+  environment.etc."nixos/source".source = self;
 }
