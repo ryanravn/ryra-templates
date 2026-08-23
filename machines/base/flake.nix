@@ -32,11 +32,21 @@
 
   outputs =
     { self, nixpkgs, herdr-pkgs, disko, sops-nix, ... }:
+    let
+      # The machine's own name, and the reason it is a FILE rather than a string here.
+      #
+      # It has to be two things at once: the attribute under `nixosConfigurations`, and
+      # `networking.hostName`. `nixos-rebuild switch` with no arguments looks the configuration up
+      # by the running hostname, so if those two ever disagree the most ordinary command on NixOS
+      # stops working on this machine and says nothing useful about why.
+      #
+      # One file read in one place makes disagreeing impossible, and leaves ryra writing a name
+      # rather than editing nix. `machine` is what a bare template says, so a template still
+      # evaluates on its own; `ryra org machines add` overwrites it with the machine's name.
+      hostName = nixpkgs.lib.fileContents ./hostname;
+    in
     {
-      # One host, named for the machine ryra creates. `ryra org machines buy`
-      # renames this to the machine's own name when it writes the checkout, so a
-      # template is a starting point and never a shared identity.
-      nixosConfigurations.machine = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.${hostName} = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         # Every .nix under `modules/`, rather than a list naming them.
         #
@@ -58,7 +68,7 @@
         # The pinned herdr reaches `modules/herdr.nix` as `herdrPkgs`, so that module names the
         # version it needs rather than taking whatever nixpkgs has moved to.
         specialArgs = {
-          inherit self;
+          inherit self hostName;
           herdrPkgs = herdr-pkgs.legacyPackages."x86_64-linux";
         };
         modules = [

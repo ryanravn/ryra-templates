@@ -3,7 +3,7 @@
 # A template is a starting point: once the machine exists its configuration is
 # its own directory in the organization's checkout, and anything opinionated
 # here is something every machine has to undo rather than something it chose.
-{ self, pkgs, ... }:
+{ self, pkgs, hostName, ... }:
 {
   # Read by `ryra org` and by anything asking what a box is running. This is the
   # commit a generation was built from, which is what makes "roll back to that
@@ -16,6 +16,10 @@
   # literal string "template", which is not a commit and told nobody anything: the comment above
   # described what it was for while the value did not do it.
   system.configurationRevision = self.rev or self.dirtyRev or "dirty";
+
+  # Its own name, from the one file the flake attribute is also read from, so
+  # `nixos-rebuild switch` with no arguments finds this configuration.
+  networking.hostName = hostName;
 
   time.timeZone = "UTC";
   i18n.defaultLocale = "en_US.UTF-8";
