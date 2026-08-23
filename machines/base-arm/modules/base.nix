@@ -15,7 +15,10 @@
   time.timeZone = "UTC";
   i18n.defaultLocale = "en_US.UTF-8";
 
-  environment.systemPackages = with pkgs; [ git rsync ];
+  # An editor, because a box you can only reach over ssh and cannot edit a file on is a box you
+  # have to redeploy to fix a typo in. `vim` rather than a choice: it is what is on every other
+  # machine these people already administer, and NixOS ships `nano` in the installer anyway.
+  environment.systemPackages = with pkgs; [ git rsync vim ];
 
   # Package updates only, never a configuration change, and never on the box's
   # own initiative. `docs/DESIGN-machines.md`: a self-triggered rebuild has
