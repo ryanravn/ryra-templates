@@ -27,11 +27,11 @@
 # created it. `RemoteState.error` already carries that case in words rather than a blank pane,
 # and a second attempt finds it up. If that turns out to be more than a blink, lingering is the
 # lever: `users.users.<name>.linger = true`.
-{ pkgs, ... }:
+{ herdrPkgs, ... }:
 {
   # On PATH as well as in the service, because somebody who ssh's in by hand wants the same
   # herdr the app is talking to rather than a second one they installed themselves.
-  environment.systemPackages = [ pkgs.herdr ];
+  environment.systemPackages = [ herdrPkgs.herdr ];
 
   systemd.user.services.herdr = {
     description = "herdr: the terminal workspace this machine's agent sessions live in";
@@ -39,7 +39,7 @@
     serviceConfig = {
       # `herdr server` with no subcommand is the headless server. Not `herdr`, which launches or
       # attaches to a session and wants a terminal there is none of here.
-      ExecStart = "${pkgs.herdr}/bin/herdr server";
+      ExecStart = "${herdrPkgs.herdr}/bin/herdr server";
       Restart = "on-failure";
       RestartSec = "5s";
     };
