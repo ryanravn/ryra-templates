@@ -48,12 +48,23 @@
   # The rest are what a person or an agent reaches for in the first minute on a box and finds
   # missing: `ripgrep` provides `rg`, and `gh` needs its own login on the machine rather than
   # inheriting one.
+  #
+  # The runtimes are here for that same reason and not because anything in this closure needs
+  # them. An agent asked to script something writes javascript or python, and a machine with
+  # neither can only answer that it cannot. `nodejs` brings `npx` with it, which is how anything
+  # published to npm and not packaged here gets run at all. Python is the interpreter and `uv`
+  # together, because the system python on NixOS cannot install into itself and a script with a
+  # dependency is the ordinary case rather than the exotic one.
   environment.systemPackages = with pkgs; [
+    bun
     fzf
     gh
     git
+    nodejs
+    python3
     ripgrep
     rsync
+    uv
     vim
   ];
 

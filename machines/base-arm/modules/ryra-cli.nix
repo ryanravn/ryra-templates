@@ -23,18 +23,18 @@
 # pkg.ryra.dev, every machine pinned to it stops building.
 { lib, pkgs, ... }:
 let
-  version = "0.1.3";
+  version = "0.1.4";
 
   # Debian's architecture names, which are not nix's. Keyed by system so one file serves both
   # templates rather than two copies drifting apart.
   published = {
     "x86_64-linux" = {
       arch = "amd64";
-      sha256 = "53430e4fb5021e4d51bcf6d05393d7f74a927e0c22baea355f597dc5a59d4b6f";
+      sha256 = "4e5e4a1c08fb0b67578847be16b4aa0d2b6f1c582b8faca3884c49de93878c7c";
     };
     "aarch64-linux" = {
       arch = "arm64";
-      sha256 = "df70c8e2c84160256eaa03ab4d533ebe9e195df877dcd2e67743e02002716f8f";
+      sha256 = "dd414c727c0933a0696d1d22bc320471f2c6be74b4d722f3729c6968f44012a5";
     };
   };
   package = published.${pkgs.stdenv.hostPlatform.system};
