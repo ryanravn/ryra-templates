@@ -45,11 +45,19 @@
   #
   # `--chmod` because the source is a store path and arrives read-only, which is exactly what
   # stopped an editor before.
+  #
+  # `--checksum` because rsync's default is size plus mtime, and EVERY file in the store has the
+  # same mtime: 1970. So a file that changed without changing length is not copied at all. That
+  # is not a corner case, it is the ordinary shape of an edit here: bumping `ryra-cli.nix` from
+  # 0.1.3 to 0.1.5 changed a version and two hex digests and left the byte count identical, so
+  # the machine ran 0.1.5 while `/etc/nixos` went on saying 0.1.3. A repair promoted from that
+  # copy would have reinstalled the version it was written to replace, which is the one failure
+  # this whole file exists to prevent.
   system.activationScripts.etcNixos = {
     deps = [ "etc" ];
     text = ''
       mkdir -p /etc/nixos
-      ${pkgs.rsync}/bin/rsync -rlt --delete --chmod=Du=rwx,Fu=rw ${self}/ /etc/nixos/
+      ${pkgs.rsync}/bin/rsync -rlt --checksum --delete --chmod=Du=rwx,Fu=rw ${self}/ /etc/nixos/
     '';
   };
 }
