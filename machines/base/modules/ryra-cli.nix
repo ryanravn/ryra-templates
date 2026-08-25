@@ -16,25 +16,27 @@
 # on every run with a sentence about dynamically linked executables.
 #
 # PINNED, and it has to be bumped when ryra is released: a `fetchurl` needs a hash, so "latest"
-# is not expressible here. The same shape as the herdr pin above it, and with less urgency, since
-# an old CLI is merely old rather than refused by a protocol check.
+# is not expressible here. The same shape as the herdr pin above it, and no longer the slack one:
+# `updates.nix` runs this binary, so a version older than the subcommand it calls is a timer that
+# fails every night. 0.1.6 was pinned here while `machines update` existed only on main, and the
+# unit died with "unrecognized subcommand" at the first run.
 #
 # This assumes the pool keeps what it has published. If a version is ever removed from
 # pkg.ryra.dev, every machine pinned to it stops building.
 { lib, pkgs, ... }:
 let
-  version = "0.1.6";
+  version = "0.1.7";
 
   # Debian's architecture names, which are not nix's. Keyed by system so one file serves both
   # templates rather than two copies drifting apart.
   published = {
     "x86_64-linux" = {
       arch = "amd64";
-      sha256 = "068e4833c4418e730a62ca734a90f2f70cf69d52986b7f048a8eeeb091deb1ce";
+      sha256 = "e46b8e2f88c04f813e38cb20e297dc933c7df8a2df33feadbd930447cba68e98";
     };
     "aarch64-linux" = {
       arch = "arm64";
-      sha256 = "946773e4c0e8f388bc092b2c6417c6b5366712e8deb189a08decad1d037a69ef";
+      sha256 = "b5c34d89f8938a4132efecbcdad03a1cafac1556fe35a5059f4352e401c31995";
     };
   };
   package = published.${pkgs.stdenv.hostPlatform.system};
