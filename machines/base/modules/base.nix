@@ -68,11 +68,10 @@
     vim
   ];
 
-  # Package updates only, never a configuration change, and never on the box's
-  # own initiative. `docs/DESIGN-machines.md`: a self-triggered rebuild has
-  # nobody outside to confirm it, so it cannot have the armed-undo net that
-  # makes a deploy survivable. The hetzner box pulled and rebuilt on a timer and
-  # failed silently for three consecutive nights.
+  # Two reasons, both standing. It moves every input, and `herdr-pkgs` is pinned
+  # to match a protocol; and a box that rebuilds itself has nobody outside to
+  # confirm it came back. `ryra org machines update` moves nixpkgs in the tree
+  # and switches from there, so the update is a commit and keeps the armed undo.
   system.autoUpgrade.enable = false;
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
