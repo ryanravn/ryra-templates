@@ -81,4 +81,9 @@ let
 in
 {
   environment.systemPackages = [ ryra ];
+
+  # For units that run it. `environment.systemPackages` puts a binary on a
+  # person's PATH and NOT on a systemd unit's, so `updates.nix` asking for
+  # `ryra` by name would have failed every night with "command not found".
+  _module.args.ryraPackage = ryra;
 }
