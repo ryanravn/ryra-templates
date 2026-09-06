@@ -1,5 +1,5 @@
 {
-  description = "ryra/base-arm: ryra/base, for the arm64 boxes a provider sells cheaper";
+  description = "Ryra desktop: a server with an on-demand virtual desktop";
 
   inputs = {
     ryra-services.url = "github:ryanravn/ryra-services";
@@ -53,9 +53,23 @@
         index = source.index;
       }) registries;
       nixosConfigurations.${hostName} = nixpkgs.lib.nixosSystem {
-        system = "aarch64-linux";
-        # Generated modules are discovered automatically. settings.nix is a service
-        # attrset, consumed by modules/services.nix rather than imported as a NixOS module.
+        system = "x86_64-linux";
+        # Every .nix under `modules/`, rather than a list naming them.
+        #
+        # Ryra GENERATES several of these: `logins.nix` and `ryra_ca.pub` when it installs, `secrets.nix` and
+        # `logins.nix` on every deploy, and more as it learns to. A hardcoded list means the
+        # product cannot start writing a file without this template being edited to import it,
+        # and the two repositories drifting is not hypothetical: `modules/ryra/settings.nix` is
+        # the file `ryra design` creates for per-service settings and never overwrites, it has
+        # existed the whole time, and nothing here imported it. Somebody's settings were being
+        # read by nobody.
+        #
+        # Order does not matter: NixOS merges modules rather than applying them in sequence, so a
+        # directory listing is as correct as a hand-written list and cannot fall behind one.
+        #
+        # The cost, stated: a stray .nix under `modules/` is now part of the system. That is the
+        # trade this pattern makes everywhere it is used, and it is the reason `secrets/` and the
+        # CA's public half live outside `modules/` rather than in it.
 
         # The pinned herdr reaches `modules/herdr.nix` as `herdrPkgs`, so that module names the
         # version it needs rather than taking whatever nixpkgs has moved to.
@@ -63,7 +77,7 @@
           inherit self hostName;
           serviceRegistries = registries;
           serviceModule = ryra-services.nixosModules.services;
-          herdrPkgs = herdr-pkgs.legacyPackages."aarch64-linux";
+          herdrPkgs = herdr-pkgs.legacyPackages."x86_64-linux";
         };
         modules = [
           disko.nixosModules.disko
