@@ -4,21 +4,9 @@
   inputs = {
     ryra-services.url = "github:ryanravn/ryra-services";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    # herdr, pinned, and ONLY herdr.
-    #
-    # Ryra announces a client protocol version and herdr refuses both directions: a client older
-    # than the server and a client newer than it. So the two have to agree, and the number moves
-    # with herdr's minor releases. 0.8.0 speaks 19, which is what `stream.rs` announces; 0.8.2
-    # speaks 20 and refuses us.
-    #
-    # These templates carry no `flake.lock` on purpose, because what a template pins decides what
-    # every machine built from it gets. That is right for nixpkgs as a whole and wrong for this
-    # one package: without it, two machines installed a week apart get two herdrs, and the newer
-    # one cannot be attached to. A pane that will not open is the product not working.
-    #
-    # Revert this the moment ryra speaks 20. It is a pin against a protocol we have not caught up
-    # with, not a preference, and `just attach-check` is what says we have.
-    herdr-pkgs.url = "github:NixOS/nixpkgs/2c423e03bbafcff28bfadc6781a4a8257f205cb5";
+    # Match Ryra 0.1.18's bundled Herdr 0.8.2 and protocol 20. Keep this pin
+    # independent of the template's general nixpkgs input.
+    herdr-pkgs.url = "github:NixOS/nixpkgs/c043004d1c6985732bcc1cbc5a9c9aecbbb4e0f0";
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
