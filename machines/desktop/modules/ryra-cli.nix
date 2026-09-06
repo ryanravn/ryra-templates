@@ -25,18 +25,18 @@
 # pkg.ryra.dev, every machine pinned to it stops building.
 { lib, pkgs, ... }:
 let
-  version = "0.1.17";
+  version = "0.1.18";
 
   # Debian's architecture names, which are not nix's. Keyed by system so one file serves both
   # templates rather than two copies drifting apart.
   published = {
     "x86_64-linux" = {
       arch = "amd64";
-      sha256 = "8ce44e9d73e3d950f9f0ec1a2012eb3080ecd513c6866cc07e87139e0db64272";
+      sha256 = "a3e0750a06ea44d9d748b1fd73fe282a9f13ecf073e8709950a7cb42f52d2035";
     };
     "aarch64-linux" = {
       arch = "arm64";
-      sha256 = "19b4aadfe8ebce562073690c77256c48d238a65fc86c33b141e47070e02d5eb7";
+      sha256 = "4d5c06f9467d74fe75eba45ab6095a0b0c2bf37568534bfe1bf474c508ebb236";
     };
   };
   package = published.${pkgs.stdenv.hostPlatform.system};
@@ -72,7 +72,7 @@ let
     # somebody auditing a closure learns that this came down as a binary rather than being
     # compiled, and 1227 packages in nixpkgs declare it.
     meta = {
-      description = "The ryra command: one agent session, in your terminal and in the app";
+      description = "Ryra: machines, secrets, deployments and agent workspaces";
       homepage = "https://ryra.dev";
       sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
       license = lib.licenses.unfree;
