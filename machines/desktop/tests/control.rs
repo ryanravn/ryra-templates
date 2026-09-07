@@ -31,10 +31,26 @@ impl Machine {
             include_str!("../modules/desktop/control.sh"),
         )
         .expect("control");
+        fs::write(
+            this.0.join("computer-control.sh"),
+            include_str!("../modules/desktop/computer-control.sh"),
+        )
+        .expect("computer control");
         this.executable("id", "echo 1000");
         this.executable("curl", "exit 0");
         this.executable("awk", "echo \"${TEST_MEMORY:-1048576}\"");
         this.executable("vncpasswd", "printf password > \"$1\"");
+        this.executable("xdpyinfo", "exit 0");
+        this.executable("timeout", "shift; exec \"$@\"");
+        this.executable(
+            "cua-driver",
+            r#"
+printf '%s\n' "$@"
+printf '%s\n' "$DISPLAY" "$XAUTHORITY" "$DBUS_SESSION_BUS_ADDRESS" "$XDG_SESSION_TYPE"
+printf '%s\n' "$CUA_DRIVER_RS_TELEMETRY_ENABLED" "$CUA_DRIVER_RS_UPDATE_CHECK"
+printf '%s\n' "${WAYLAND_DISPLAY-unset}" "${SWAYSOCK-unset}" "${HYPRLAND_INSTANCE_SIGNATURE-unset}"
+"#,
+        );
         this.executable(
             "systemctl",
             r#"
@@ -91,6 +107,36 @@ esac
             .envs(env.iter().copied())
             .output()
             .expect("run helper against mocks")
+    }
+
+    fn computer_control(&self, args: &[&str]) -> std::process::Output {
+        Command::new("bash")
+            .args(["-eu", "-o", "pipefail"])
+            .arg(self.0.join("computer-control.sh"))
+            .args(args)
+            .env(
+                "PATH",
+                format!(
+                    "{}:{}",
+                    self.0.join("bin").display(),
+                    std::env::var("PATH").expect("PATH")
+                ),
+            )
+            .env("XDG_RUNTIME_DIR", self.0.join("run"))
+            .env("TEST_ROOT", &self.0)
+            .env("RYRA_CUA_DRIVER", self.0.join("bin/cua-driver"))
+            // Stale forwarded display and user overrides must not redirect control.
+            .env("DISPLAY", "localhost:10.0")
+            .env("XAUTHORITY", "/wrong/cookie")
+            .env("DBUS_SESSION_BUS_ADDRESS", "unix:path=/wrong/bus")
+            .env("XDG_SESSION_TYPE", "wayland")
+            .env("WAYLAND_DISPLAY", "wayland-0")
+            .env("SWAYSOCK", "/wrong/sway")
+            .env("HYPRLAND_INSTANCE_SIGNATURE", "wrong-hyprland")
+            .env("CUA_DRIVER_RS_TELEMETRY_ENABLED", "true")
+            .env("CUA_DRIVER_RS_UPDATE_CHECK", "true")
+            .output()
+            .expect("run computer control against mocks")
     }
 
     fn said(&self, action: &str, env: &[(&str, &str)]) -> String {
@@ -186,4 +232,65 @@ fn password_change_is_atomic_and_refused_while_running() {
     );
     machine.state("active");
     assert!(!machine.run("password", &[]).status.success());
+}
+
+#[test]
+fn computer_control_selects_the_accounts_desktop_from_an_ssh_environment() {
+    let machine = Machine::new();
+    machine.state("active");
+    fs::write(machine.0.join("run/ryra-desktop/Xauthority"), "cookie").unwrap();
+    let out = machine.computer_control(&["mcp", "--direct"]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(
+        String::from_utf8(out.stdout).unwrap(),
+        format!(
+            "mcp\n--direct\n:1000\n{}/run/ryra-desktop/Xauthority\nunix:path={}/run/bus\nx11\nfalse\nfalse\nunset\nunset\nunset\n",
+            machine.0.display(), machine.0.display()
+        )
+    );
+}
+
+#[test]
+fn computer_control_rejects_stopped_unready_or_wrong_account_desktops() {
+    let machine = Machine::new();
+    let rejected = || {
+        let out = machine.computer_control(&["mcp", "--direct"]);
+        assert!(!out.status.success());
+        assert!(out.stdout.is_empty(), "failed preflight must not start MCP");
+        assert!(String::from_utf8_lossy(&out.stderr).contains("ryra desktop start"));
+    };
+    rejected();
+    assert_eq!(
+        fs::read_to_string(machine.0.join("state")).unwrap(),
+        "stopped"
+    );
+    machine.state("active");
+    rejected();
+    fs::write(machine.0.join("run/ryra-desktop/Xauthority"), "cookie").unwrap();
+    machine.executable("xdpyinfo", "exit 1");
+    rejected();
+    machine.executable("xdpyinfo", "exit 0");
+    for uid in ["0", "999", "49001"] {
+        machine.executable("id", &format!("echo {uid}"));
+        let out = machine.computer_control(&["mcp", "--direct"]);
+        assert!(!out.status.success());
+        assert!(out.stdout.is_empty());
+        assert!(String::from_utf8_lossy(&out.stderr).contains("regular desktop account"));
+    }
+}
+
+#[test]
+fn computer_control_version_needs_no_desktop() {
+    let machine = Machine::new();
+    machine.executable("cua-driver", "printf '%s %s %s' \"$1\" \"$CUA_DRIVER_RS_TELEMETRY_ENABLED\" \"$CUA_DRIVER_RS_UPDATE_CHECK\"");
+    let out = machine.computer_control(&["--version"]);
+    assert!(out.status.success());
+    assert_eq!(
+        String::from_utf8(out.stdout).unwrap(),
+        "--version false false"
+    );
 }

@@ -26,7 +26,10 @@ if [[ "$desktop_ready" != true ]]; then
   exit 1
 fi
 
-dbus-run-session -- openbox-session &
+# Share the systemd user bus with agents launched through SSH. A separate bus
+# here makes desktop accessibility trees invisible to those agents.
+export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+openbox-session &
 desktop_wm_pid=$!
 xterm -title 'Ryra desktop' &
 websockify --web "$RYRA_NOVNC" --unix-target "$desktop_runtime/vnc.sock" \

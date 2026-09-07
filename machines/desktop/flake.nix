@@ -4,6 +4,12 @@
   inputs = {
     ryra-services.url = "github:ryanravn/ryra-services";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Cua Driver 0.23.2. Its upstream Nix package is only built when computer
+    # control is enabled; pin the source so deployments cannot silently upgrade it.
+    cua = {
+      url = "github:trycua/cua/e88e9d899ac5effaeae38619527ebaa46b26ce72";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # Match Ryra 0.1.18's bundled Herdr 0.8.2 and protocol 20. Keep this pin
     # independent of the template's general nixpkgs input.
     herdr-pkgs.url = "github:NixOS/nixpkgs/c043004d1c6985732bcc1cbc5a9c9aecbbb4e0f0";
@@ -20,7 +26,7 @@
   };
 
   outputs =
-    { self, nixpkgs, herdr-pkgs, disko, sops-nix, ryra-services, ... }@inputs:
+    { self, nixpkgs, herdr-pkgs, disko, sops-nix, ryra-services, cua, ... }@inputs:
     let
       registries = import ./registries.nix inputs;
       # The machine's own name, and the reason it is a FILE rather than a string here.
@@ -40,6 +46,9 @@
         flake = "path:${source.outPath}";
         index = source.index;
       }) registries;
+      checks.x86_64-linux.computer-control = import ./tests/computer-control.nix {
+        desktop = self.nixosConfigurations.${hostName};
+      };
       nixosConfigurations.${hostName} = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         # Every .nix under `modules/`, rather than a list naming them.
@@ -66,6 +75,7 @@
           serviceRegistries = registries;
           serviceModule = ryra-services.nixosModules.services;
           herdrPkgs = herdr-pkgs.legacyPackages."x86_64-linux";
+          cuaDriver = cua.packages.x86_64-linux.cua-driver;
         };
         modules = [
           disko.nixosModules.disko
