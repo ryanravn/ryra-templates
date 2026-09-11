@@ -1,2 +1,5 @@
 # Copied machine configurations create and own their own input locks.
 machines/*/flake.lock
+
+__pycache__/
+*.pyc
