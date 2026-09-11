@@ -56,12 +56,17 @@ in
 
   config = lib.mkIf cfg.enable {
     assertions = [{
-      assertion = cfg.checkout != null && cfg.org != "";
-      message = "services.ryra-update needs an org and a checkout of its folder.";
+      assertion = cfg.checkout != null && cfg.org != "" && cfg.machines != [] && builtins.hasAttr cfg.user config.users.users;
+      message = "services.ryra-update needs an org, a checkout, at least one machine and an existing local user.";
     }];
 
     systemd.services.ryra-update = {
       description = "Ryra security updates";
+      # Keep the updater alive across the activation it is supervising, including
+      # changes to its own pinned binary. Its next run uses the new unit.
+      restartIfChanged = false;
+      stopIfChanged = false;
+      environment.HOME = config.users.users.${cfg.user}.home or "/var/empty";
       serviceConfig = {
         Type = "oneshot";
         User = cfg.user;
@@ -84,6 +89,7 @@ in
       timerConfig = {
         OnCalendar = cfg.dates;
         Persistent = true;
+        RandomizedDelaySec = "30m";
       };
     };
   };
